@@ -1,0 +1,22 @@
+notatherapist.com {
+    root * /srv
+    file_server
+    try_files {path} /index.html
+    encode gzip
+    
+    header {
+        X-Content-Type-Options nosniff
+        X-Frame-Options DENY
+        X-XSS-Protection "1; mode=block"
+        Strict-Transport-Security "max-age=31536000"
+    }
+    
+    @static {
+        path *.css *.js *.jpg *.jpeg *.png *.gif *.ico *.svg
+    }
+    header @static Cache-Control "public, max-age=2592000"
+}
+
+www.notatherapist.com {
+    redir https://notatherapist.com{uri} permanent
+}
