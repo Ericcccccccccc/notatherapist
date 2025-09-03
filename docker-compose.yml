@@ -3,7 +3,7 @@ version: '3.8'
 services:
   frontend:
     image: notatherapist-frontend
-    container_name: notatherapist
+    container_name: notatherapist-frontend
     ports:
       - "80:80"
       - "443:443"
@@ -11,6 +11,34 @@ services:
     volumes:
       - caddy_data:/data
       - caddy_config:/config
+    networks:
+      - notatherapist-network
+    depends_on:
+      - llm_gateway
+
+  llm_gateway:
+    image: notatherapist-llm-gateway
+    container_name: notatherapist-llm-gateway
+    ports:
+      - "5004:5004"
+    restart: unless-stopped
+    environment:
+      - BASETEN_API_KEY=jPodC7PX.km2yvG9icviCMGklMgyrbSyxcVdnr3iY
+    networks:
+      - notatherapist-network
+
+  # Add other services as needed:
+  # input_gateway:
+  #   build: ./input_gateway
+  #   container_name: notatherapist-input-gateway
+  #   ports:
+  #     - "5001:5001"
+  #   networks:
+  #     - notatherapist-network
+
+networks:
+  notatherapist-network:
+    driver: bridge
 
 volumes:
   caddy_data:

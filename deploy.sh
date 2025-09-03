@@ -8,14 +8,17 @@ SSH_KEY="$HOME/Documents/tech/notatherapist/oracle-ssh.key"
 
 echo "🚀 Deploying to notatherapist.com..."
 
-echo "📦 Building Docker image..."
+echo "📦 Building Docker images..."
+echo "  - Building frontend..."
 docker build -t notatherapist-frontend ./frontend
+echo "  - Building LLM Gateway..."
+docker build -t notatherapist-llm-gateway ./llm_gateway
 
-echo "💾 Saving Docker image..."
-docker save notatherapist-frontend | gzip > notatherapist-frontend.tar.gz
+echo "💾 Saving Docker images..."
+docker save notatherapist-frontend notatherapist-llm-gateway | gzip > notatherapist-images.tar.gz
 
 echo "📤 Uploading to server..."
-scp -i "${SSH_KEY}" notatherapist-frontend.tar.gz ubuntu@${REMOTE_HOST}:/tmp/
+scp -i "${SSH_KEY}" notatherapist-images.tar.gz ubuntu@${REMOTE_HOST}:/tmp/
 scp -i "${SSH_KEY}" docker-compose.yml ubuntu@${REMOTE_HOST}:~/
 
 echo "🔧 Deploying on server..."
@@ -38,10 +41,10 @@ ssh -i "${SSH_KEY}" ubuntu@${REMOTE_HOST} << EOF
         sudo chmod +x /usr/local/bin/docker-compose
     fi
     
-    # Load Docker image
-    echo "Loading Docker image..."
-    docker load < /tmp/notatherapist-frontend.tar.gz
-    rm /tmp/notatherapist-frontend.tar.gz
+    # Load Docker images
+    echo "Loading Docker images..."
+    docker load < /tmp/notatherapist-images.tar.gz
+    rm /tmp/notatherapist-images.tar.gz
     
     # Stop existing container if running
     docker-compose down 2>/dev/null || true
@@ -58,6 +61,6 @@ ssh -i "${SSH_KEY}" ubuntu@${REMOTE_HOST} << EOF
     docker ps
 EOF
 
-rm -f notatherapist-frontend.tar.gz
+rm -f notatherapist-images.tar.gz
 
 echo "✅ Deployed to https://notatherapist.com"

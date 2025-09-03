@@ -103,26 +103,64 @@ document.addEventListener('DOMContentLoaded', function() {
     const sendButton = document.getElementById('sendButton');
     const responseArea = document.getElementById('responseArea');
     
-    function sendMessage() {
+    async function sendMessage() {
         const message = chatInput.value.trim();
         
         if (!message) return;
         
+        // Show loading state
         responseArea.classList.add('active', 'loading');
-        responseArea.textContent = 'Thinking';
+        responseArea.innerHTML = '<div class="loading-dots">Thinking<span>.</span><span>.</span><span>.</span></div>';
         
         sendButton.disabled = true;
         sendButton.style.opacity = '0.6';
+        chatInput.value = '';
         
-        setTimeout(() => {
-            responseArea.classList.remove('loading');
-            responseArea.textContent = "I'm NotATherapist, your AI companion. While this is a demo interface, I'm here to show you how thoughtful conversations could work. In a full implementation, I'd connect to an AI service to provide meaningful responses to your messages. For now, feel free to explore the rest of the site!";
+        try {
+            // Send to LLM Gateway at port 5004
+            const response = await fetch('/api/llm/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    message: message,
+                    conversation_id: sessionStorage.getItem('conversation_id') || generateConversationId()
+                })
+            });
             
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            
+            // Display the response
+            responseArea.classList.remove('loading');
+            responseArea.textContent = data.response || data.message || 'I received your message but had trouble processing it.';
+            
+            // Store conversation ID if provided
+            if (data.conversation_id) {
+                sessionStorage.setItem('conversation_id', data.conversation_id);
+            }
+            
+        } catch (error) {
+            console.error('Error sending message:', error);
+            responseArea.classList.remove('loading');
+            responseArea.innerHTML = `
+                <div class="error-message">
+                    <strong>Connection Error:</strong> Unable to reach the AI service. 
+                    <br><small>The backend service might not be running yet.</small>
+                </div>
+            `;
+        } finally {
             sendButton.disabled = false;
             sendButton.style.opacity = '1';
-        }, 1500);
-        
-        chatInput.value = '';
+        }
+    }
+    
+    function generateConversationId() {
+        return 'conv_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
     }
     
     sendButton.addEventListener('click', sendMessage);

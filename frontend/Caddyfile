@@ -1,8 +1,17 @@
 notatherapist.com {
     root * /srv
-    file_server
-    try_files {path} /index.html
     encode gzip
+    
+    # Proxy API requests to LLM Gateway
+    handle_path /api/llm/* {
+        reverse_proxy llm_gateway:5004
+    }
+    
+    # Serve frontend files
+    handle {
+        file_server
+        try_files {path} /index.html
+    }
     
     header {
         X-Content-Type-Options nosniff
