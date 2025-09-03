@@ -12,7 +12,7 @@ echo "📦 Building Docker images..."
 echo "  - Building frontend..."
 docker build -t notatherapist-frontend ./frontend
 echo "  - Building LLM Gateway..."
-docker build -t notatherapist-llm-gateway ./llm_gateway
+docker build -t notatherapist-llm-gateway ./backend/llm_gateway
 
 echo "💾 Saving Docker images..."
 docker save notatherapist-frontend notatherapist-llm-gateway | gzip > notatherapist-images.tar.gz

@@ -23,4 +23,4 @@ Thumbs.db
 # Build
 dist/
 build/
-*.log
+*.logvenv/

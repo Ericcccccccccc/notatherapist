@@ -17,6 +17,7 @@ services:
       - llm_gateway
 
   llm_gateway:
+    build: ./backend/llm_gateway
     image: notatherapist-llm-gateway
     container_name: notatherapist-llm-gateway
     ports:
@@ -27,12 +28,36 @@ services:
     networks:
       - notatherapist-network
 
-  # Add other services as needed:
+  # Placeholder services - uncomment and configure as needed:
   # input_gateway:
-  #   build: ./input_gateway
+  #   build: ./backend/input_gateway
   #   container_name: notatherapist-input-gateway
   #   ports:
   #     - "5001:5001"
+  #   networks:
+  #     - notatherapist-network
+
+  # input_processor:
+  #   build: ./backend/input_processor
+  #   container_name: notatherapist-input-processor
+  #   ports:
+  #     - "5002:5002"
+  #   networks:
+  #     - notatherapist-network
+
+  # response_processor:
+  #   build: ./backend/response_processor
+  #   container_name: notatherapist-response-processor
+  #   ports:
+  #     - "5005:5005"
+  #   networks:
+  #     - notatherapist-network
+
+  # response_gateway:
+  #   build: ./backend/response_gateway
+  #   container_name: notatherapist-response-gateway
+  #   ports:
+  #     - "5006:5006"
   #   networks:
   #     - notatherapist-network
 
