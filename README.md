@@ -4,21 +4,28 @@ An AI-powered conversational companion web application built with a microservice
 
 ## 🏗️ Architecture Overview
 
-NotATherapist uses a microservices architecture with distinct services handling different aspects of the application:
+NotATherapist uses a streamlined architecture with a unified backend service to minimize HTTP overhead:
 
 ```
-┌──────────────┐     ┌──────────────┐     ┌──────────────┐
-│   Frontend   │────▶│     Caddy    │────▶│ LLM Gateway  │
-│   (Static)   │     │   (Reverse   │     │  (Flask API) │
-│              │     │    Proxy)    │     │              │
-└──────────────┘     └──────────────┘     └──────────────┘
-                                                  │
-                                                  ▼
-                                          ┌──────────────┐
-                                          │  Baseten AI  │
-                                          │   (GPT-OSS)  │
-                                          └──────────────┘
+┌──────────────┐     ┌──────────────┐     ┌──────────────────┐
+│   Frontend   │────▶│     Caddy    │────▶│  Backend Service │
+│   (Static)   │     │   (Reverse   │     │   (Flask API)    │
+│              │     │    Proxy)    │     │    Port 5004     │
+└──────────────┘     └──────────────┘     └──────────────────┘
+                                                    │
+                                                    ▼
+                                            ┌──────────────┐
+                                            │  Baseten AI  │
+                                            │   (GPT-OSS)  │
+                                            └──────────────┘
 ```
+
+### Backend Service Components:
+- **LLM Gateway**: Handles AI communication with Baseten
+- **Input Processor**: Validates and preprocesses messages
+- **Response Processor**: Enhances and filters AI responses
+
+All components run within a single Flask application on port 5004 to reduce latency and complexity.
 
 ## 📁 Project Structure
 
@@ -31,17 +38,13 @@ notatherapist/
 │   ├── Caddyfile            # Web server configuration
 │   └── Dockerfile           # Container configuration
 │
-├── backend/                  # Microservices
-│   ├── llm_gateway/         # AI integration service
-│   │   ├── app.py           # Flask API server
-│   │   ├── requirements.txt # Python dependencies
-│   │   └── Dockerfile       # Container configuration
-│   │
-│   └── [future services]/   # Placeholder for additional services
-│       ├── input_gateway/
-│       ├── input_processor/
-│       ├── response_processor/
-│       └── response_gateway/
+├── backend/                  # Unified backend service
+│   ├── app.py               # Main Flask application (port 5004)
+│   ├── requirements.txt     # Python dependencies
+│   ├── Dockerfile           # Container configuration
+│   ├── llm_gateway.py       # AI integration module
+│   ├── input_processor.py   # Request preprocessing module
+│   └── response_processor.py # Response enhancement module
 │
 ├── docker-compose.yml        # Multi-container orchestration
 ├── deploy.sh                # Deployment automation script
@@ -56,7 +59,7 @@ notatherapist/
 - **Docker** - Containerization for consistent deployment
 
 ### Backend
-- **Python/Flask** - Lightweight API framework
+- **Python/Flask** - Unified API service on port 5004
 - **Baseten AI** - LLM provider (OpenAI-compatible API)
 - **Gunicorn** - Production WSGI server
 - **Docker** - Service containerization
@@ -113,10 +116,10 @@ This script will:
 ```bash
 # Build images
 docker build -t notatherapist-frontend ./frontend
-docker build -t notatherapist-llm-gateway ./backend/llm_gateway
+docker build -t notatherapist-backend ./backend
 
 # Save images
-docker save notatherapist-frontend notatherapist-llm-gateway | gzip > images.tar.gz
+docker save notatherapist-frontend notatherapist-backend | gzip > images.tar.gz
 
 # Transfer to server
 scp images.tar.gz ubuntu@server:/tmp/
@@ -139,7 +142,7 @@ python3 -m http.server 8000
 
 ### Backend Development
 ```bash
-cd backend/llm_gateway
+cd backend
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
@@ -153,12 +156,12 @@ docker-compose up --build
 
 # Services available at:
 # Frontend: http://localhost
-# LLM Gateway: http://localhost:5004
+# Backend API: http://localhost:5004
 ```
 
 ## 📡 API Endpoints
 
-### LLM Gateway Service (Port 5004)
+### Backend Service (Port 5004)
 
 **POST /chat**
 ```json
@@ -181,7 +184,7 @@ Response:
 Response:
 {
   "status": "healthy",
-  "service": "llm_gateway",
+  "service": "backend",
   "timestamp": "2025-09-03T12:00:00Z"
 }
 ```
@@ -234,18 +237,18 @@ docker-compose logs -f
 
 # Specific service
 docker logs notatherapist-frontend -f
-docker logs notatherapist-llm-gateway -f
+docker logs notatherapist-backend -f
 ```
 
 ## 🎯 Future Enhancements
 
-### Planned Services
-- **Input Gateway**: Rate limiting and request validation
-- **Input Processor**: Message preprocessing and moderation
-- **Response Processor**: Response filtering and enhancement
-- **Response Gateway**: WebSocket support for real-time chat
-- **Database Service**: Conversation history and user sessions
-- **Cache Service**: Redis for performance optimization
+### Planned Features
+- **Input Processing**: Message validation, rate limiting, and content moderation
+- **Response Processing**: Response filtering, enhancement, and streaming support
+- **WebSocket Support**: Real-time bidirectional communication
+- **Database Integration**: Conversation history and user sessions
+- **Cache Layer**: Redis for performance optimization
+- **Queue System**: Asynchronous task processing
 
 ### Infrastructure Improvements
 - Kubernetes deployment for better scaling
