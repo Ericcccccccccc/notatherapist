@@ -1,7 +1,7 @@
 FROM caddy:alpine
 
 # Copy website files
-COPY index.html style.css app.js /srv/
+COPY index.html login.html style.css app.js login.js /srv/
 
 # Copy Caddyfile - the production one will be mounted as a volume
 COPY Caddyfile /etc/caddy/Caddyfile

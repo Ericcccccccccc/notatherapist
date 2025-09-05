@@ -1,8 +1,86 @@
 document.addEventListener('DOMContentLoaded', function() {
+    // Check authentication first
+    checkAuthentication();
+    
     const navbar = document.querySelector('.navbar');
     const navLinks = document.querySelectorAll('.nav-link');
     const contactForm = document.getElementById('contactForm');
     const featureCards = document.querySelectorAll('.feature-card');
+    
+    async function checkAuthentication() {
+        try {
+            const response = await fetch('/api/llm/auth/check', {
+                method: 'GET',
+                credentials: 'include'
+            });
+            
+            if (!response.ok) {
+                // Not authenticated, redirect to login
+                window.location.href = '/login.html';
+                return;
+            }
+            
+            const data = await response.json();
+            if (!data.authenticated) {
+                window.location.href = '/login.html';
+                return;
+            }
+            
+            // User is authenticated, show greeting
+            displayUserGreeting(data.name);
+            
+        } catch (error) {
+            console.error('Auth check failed:', error);
+            window.location.href = '/login.html';
+        }
+    }
+    
+    function displayUserGreeting(name) {
+        const navContainer = document.querySelector('.nav-container');
+        const navMenu = document.querySelector('.nav-menu');
+        
+        // Create user info element
+        const userInfo = document.createElement('div');
+        userInfo.className = 'user-info';
+        userInfo.style.display = 'flex';
+        userInfo.style.alignItems = 'center';
+        userInfo.style.marginLeft = 'auto';
+        
+        const greeting = document.createElement('span');
+        greeting.className = 'user-greeting';
+        greeting.textContent = `Hi, ${name}!`;
+        
+        const logoutLink = document.createElement('a');
+        logoutLink.href = '#';
+        logoutLink.className = 'logout-link';
+        logoutLink.textContent = 'Logout';
+        logoutLink.onclick = async function(e) {
+            e.preventDefault();
+            await logout();
+        };
+        
+        userInfo.appendChild(greeting);
+        userInfo.appendChild(logoutLink);
+        
+        // Insert after nav menu
+        navMenu.parentNode.insertBefore(userInfo, navMenu.nextSibling);
+    }
+    
+    async function logout() {
+        try {
+            const response = await fetch('/api/llm/auth/logout', {
+                method: 'POST',
+                credentials: 'include'
+            });
+            
+            if (response.ok) {
+                sessionStorage.clear();
+                window.location.href = '/login.html';
+            }
+        } catch (error) {
+            console.error('Logout failed:', error);
+        }
+    }
     
     let lastScrollTop = 0;
     window.addEventListener('scroll', function() {

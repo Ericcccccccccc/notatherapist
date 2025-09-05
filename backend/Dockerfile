@@ -8,6 +8,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy all Python modules
 COPY app.py .
+COPY auth.py .
 COPY input_processor.py .
 COPY llm_gateway.py .
 COPY response_processor.py .

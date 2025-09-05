@@ -2,9 +2,12 @@ notatherapist.com {
     root * /srv
     encode gzip
     
-    # Proxy API requests to Backend Service
+    # Proxy all API requests to Backend Service
     handle_path /api/llm/* {
-        reverse_proxy backend:5004
+        reverse_proxy backend:5004 {
+            header_up X-Forwarded-Proto {scheme}
+            header_up X-Forwarded-For {remote}
+        }
     }
     
     # Serve frontend files
