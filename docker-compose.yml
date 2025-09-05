@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   frontend:
     image: notatherapist-frontend
@@ -14,52 +12,17 @@ services:
     networks:
       - notatherapist-network
     depends_on:
-      - llm_gateway
+      - backend
 
-  llm_gateway:
-    build: ./backend/llm_gateway
-    image: notatherapist-llm-gateway
-    container_name: notatherapist-llm-gateway
-    ports:
-      - "5004:5004"
+  backend:
+    image: notatherapist-backend
+    container_name: notatherapist-backend
     restart: unless-stopped
-    environment:
-      - BASETEN_API_KEY=jPodC7PX.km2yvG9icviCMGklMgyrbSyxcVdnr3iY
+    env_file:
+      - .env
     networks:
       - notatherapist-network
 
-  # Placeholder services - uncomment and configure as needed:
-  # input_gateway:
-  #   build: ./backend/input_gateway
-  #   container_name: notatherapist-input-gateway
-  #   ports:
-  #     - "5001:5001"
-  #   networks:
-  #     - notatherapist-network
-
-  # input_processor:
-  #   build: ./backend/input_processor
-  #   container_name: notatherapist-input-processor
-  #   ports:
-  #     - "5002:5002"
-  #   networks:
-  #     - notatherapist-network
-
-  # response_processor:
-  #   build: ./backend/response_processor
-  #   container_name: notatherapist-response-processor
-  #   ports:
-  #     - "5005:5005"
-  #   networks:
-  #     - notatherapist-network
-
-  # response_gateway:
-  #   build: ./backend/response_gateway
-  #   container_name: notatherapist-response-gateway
-  #   ports:
-  #     - "5006:5006"
-  #   networks:
-  #     - notatherapist-network
 
 networks:
   notatherapist-network:

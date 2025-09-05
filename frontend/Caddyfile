@@ -2,9 +2,9 @@ notatherapist.com {
     root * /srv
     encode gzip
     
-    # Proxy API requests to LLM Gateway
+    # Proxy API requests to Backend Service
     handle_path /api/llm/* {
-        reverse_proxy llm_gateway:5004
+        reverse_proxy backend:5004
     }
     
     # Serve frontend files

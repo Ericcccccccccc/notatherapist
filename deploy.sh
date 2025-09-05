@@ -11,15 +11,25 @@ echo "🚀 Deploying to notatherapist.com..."
 echo "📦 Building Docker images..."
 echo "  - Building frontend..."
 docker build -t notatherapist-frontend ./frontend
-echo "  - Building LLM Gateway..."
-docker build -t notatherapist-llm-gateway ./backend/llm_gateway
+echo "  - Building backend..."
+docker build -t notatherapist-backend ./backend
 
 echo "💾 Saving Docker images..."
-docker save notatherapist-frontend notatherapist-llm-gateway | gzip > notatherapist-images.tar.gz
+docker save notatherapist-frontend notatherapist-backend | gzip > notatherapist-images.tar.gz
 
 echo "📤 Uploading to server..."
 scp -i "${SSH_KEY}" notatherapist-images.tar.gz ubuntu@${REMOTE_HOST}:/tmp/
+
+# Check if .env exists locally
+if [ ! -f .env ]; then
+    echo "⚠️  Warning: .env file not found locally"
+    echo "   Please create .env from .env.example before deployment"
+    exit 1
+fi
+
+# Upload configuration files
 scp -i "${SSH_KEY}" docker-compose.yml ubuntu@${REMOTE_HOST}:~/
+scp -i "${SSH_KEY}" .env ubuntu@${REMOTE_HOST}:~/
 
 echo "🔧 Deploying on server..."
 ssh -i "${SSH_KEY}" ubuntu@${REMOTE_HOST} << EOF
@@ -46,8 +56,12 @@ ssh -i "${SSH_KEY}" ubuntu@${REMOTE_HOST} << EOF
     docker load < /tmp/notatherapist-images.tar.gz
     rm /tmp/notatherapist-images.tar.gz
     
-    # Stop existing container if running
-    docker-compose down 2>/dev/null || true
+    # Stop ALL existing containers and remove orphans
+    docker-compose down --remove-orphans 2>/dev/null || true
+    
+    # Extra cleanup - stop any container using port 5004
+    docker ps -q --filter "publish=5004" | xargs -r docker stop
+    docker ps -aq --filter "publish=5004" | xargs -r docker rm
     
     # Start the application
     echo "Starting application..."

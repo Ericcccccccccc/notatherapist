@@ -14,4 +14,5 @@ COPY response_processor.py .
 
 EXPOSE 5004
 
-CMD ["gunicorn", "--bind", "0.0.0.0:5004", "--workers", "1", "--threads", "2", "--timeout", "120", "app:app"]
+# Use uvicorn for FastAPI with auto-reload disabled in production
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "5004", "--workers", "1", "--loop", "asyncio", "--timeout-keep-alive", "120"]
