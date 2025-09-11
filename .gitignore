@@ -26,3 +26,6 @@ build/
 *.logvenv/
 backend/llm_gateway/venv/
 *.tar.gz
+.env
+.env.local
+.env.production
